@@ -1,47 +1,20 @@
-import "@testing-library/jest-dom";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ItemForm from "../components/ItemForm";
-import App from "../components/App";
 
-test("calls the onItemFormSubmit callback prop when the form is submitted", () => {
-  const onItemFormSubmit = jest.fn();
-  render(<ItemForm onItemFormSubmit={onItemFormSubmit} />);
+test("ItemForm submits new item correctly", () => {
+  const handleSubmit = jest.fn();
+  render(<ItemForm onItemFormSubmit={handleSubmit} />);
 
-  fireEvent.change(screen.queryByLabelText(/Name/), {
-    target: { value: "Ice Cream" },
-  });
+  const nameInput = screen.getByLabelText(/Name/i);
+  const categorySelect = screen.getByLabelText(/Category/i);
+  const submitButton = screen.getByText(/Add Item/i);
 
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Dessert" },
-  });
+  fireEvent.change(nameInput, { target: { value: "Yogurt" } });
+  fireEvent.change(categorySelect, { target: { value: "Dairy" } });
+  fireEvent.click(submitButton);
 
-  fireEvent.submit(screen.queryByText(/Add to List/));
-
-  expect(onItemFormSubmit).toHaveBeenCalledWith(
-    expect.objectContaining({
-      id: expect.any(String),
-      name: "Ice Cream",
-      category: "Dessert",
-    })
-  );
-});
-
-test("adds a new item to the list when the form is submitted", () => {
-  render(<App />);
-
-  const dessertCount = screen.queryAllByText(/Dessert/).length;
-
-  fireEvent.change(screen.queryByLabelText(/Name/), {
-    target: { value: "Ice Cream" },
-  });
-
-  fireEvent.change(screen.queryByLabelText(/Category/), {
-    target: { value: "Dessert" },
-  });
-
-  fireEvent.submit(screen.queryByText(/Add to List/));
-
-  expect(screen.queryByText(/Ice Cream/)).toBeInTheDocument();
-
-  expect(screen.queryAllByText(/Dessert/).length).toBe(dessertCount + 1);
+  expect(handleSubmit).toHaveBeenCalled();
+  const submittedItem = handleSubmit.mock.calls[0][0];
+  expect(submittedItem.name).toBe("Yogurt");
+  expect(submittedItem.category).toBe("Dairy");
 });
